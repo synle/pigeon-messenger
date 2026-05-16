@@ -1,0 +1,239 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            artifact_name: macOS (Apple Silicon ARM64)
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: macOS (Intel x64)
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: Windows (x64)
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            artifact_name: Linux (x64)
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libxdo-dev \
+            libssl-dev
+
+      - name: Install dependencies
+        run: npm ci || npm install --no-fund --prefer-offline
+
+      - name: Run frontend tests
+        run: npm test
+
+      - name: Run Rust tests
+        working-directory: src-tauri
+        run: cargo test --target ${{ matrix.target }}
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --target ${{ matrix.target }}
+
+      - name: Upload bundle artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+            src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app
+            src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
+            src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
+            src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
+            src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+            src-tauri/target/${{ matrix.target }}/release/bundle/rpm/*.rpm
+          retention-days: 30
+          compression-level: 9
+          if-no-files-found: ignore
+
+  coverage:
+    # Coverage runs on a single OS (Linux is cheapest) — the Rust test
+    # suite is platform-agnostic for the covered code. Thresholds are
+    # pinned to the current baseline (floored to integers). Real
+    # regressions below the floor fail the build; raise these as
+    # coverage improves.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libxdo-dev \
+            libssl-dev
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      # `tauri.conf.json` references `resources/*`; the sidecar build
+      # populates this directory but we're not running it here, so
+      # create it empty to satisfy tauri-build during `cargo llvm-cov`.
+      - name: Ensure resources directory exists
+        run: mkdir -p src-tauri/resources
+
+      - name: Rust coverage (cargo-llvm-cov)
+        id: rust_cov
+        working-directory: src-tauri
+        # Floors mirror the current baseline (Regions 10.77%,
+        # Functions 25.00%, Lines 13.33%) floored to integers.
+        # Raise these as coverage improves; never lower below baseline.
+        run: |
+          set -o pipefail
+          cargo llvm-cov --lib --summary-only \
+            --fail-under-lines 13 \
+            --fail-under-functions 25 \
+            --fail-under-regions 10 \
+            2>&1 | tee /tmp/rust-cov.txt
+
+      # Also emit HTML + lcov reports for the artifact upload below.
+      # `--no-run` reuses the instrumented build from the previous step
+      # so we don't rebuild — much faster than two full runs.
+      - name: Generate HTML + lcov reports
+        if: always()
+        working-directory: src-tauri
+        run: |
+          cargo llvm-cov report --html || true
+          cargo llvm-cov report --lcov --output-path target/llvm-cov-target/lcov.info || true
+
+      # Upload the full HTML / lcov reports as an artifact so reviewers
+      # can drill into per-file line-level coverage when the run-page
+      # summary's totals aren't enough.
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rust-coverage-reports
+          path: |
+            src-tauri/target/llvm-cov-target/html/
+            src-tauri/target/llvm-cov-target/lcov.info
+          retention-days: 14
+          if-no-files-found: ignore
+
+      # Surface the report on the workflow's run page. `if: always()`
+      # ensures the summary still posts when the threshold check fails
+      # — that's exactly when a human wants to see the numbers.
+      - name: Post coverage to step summary
+        if: always()
+        run: |
+          {
+            echo "## Rust test coverage — \`$GITHUB_SHA\`"
+            echo
+            echo '```text'
+            if [ -f /tmp/rust-cov.txt ]; then
+              awk '/^Filename/,/^TOTAL/' /tmp/rust-cov.txt \
+                || tail -n 30 /tmp/rust-cov.txt
+            else
+              echo "(rust coverage did not run)"
+            fi
+            echo '```'
+            echo
+            echo "Thresholds (from \`build.yml\` cargo-llvm-cov flags):"
+            echo "lines ≥ 13, functions ≥ 25, regions ≥ 10."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  pr_comment:
+    if: github.event_name == 'pull_request'
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post artifact links on PR
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            let body = `## Build Artifacts\n\n`;
+            if (artifacts.data.artifacts.length === 0) {
+              body += `No artifacts were produced.\n`;
+            } else {
+              body += `| Platform | Size | Download |\n|----------|------|----------|\n`;
+              for (const a of artifacts.data.artifacts) {
+                const sizeMB = (a.size_in_bytes / 1024 / 1024).toFixed(1);
+                const downloadUrl = `${runUrl}/artifacts/${a.id}`;
+                body += `| ${a.name} | ${sizeMB} MB | [Download](${downloadUrl}) |\n`;
+              }
+            }
+            body += `\n[View full run](${runUrl})`;
+            const marker = '<!-- build-artifacts -->';
+            body = marker + '\n' + body;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
