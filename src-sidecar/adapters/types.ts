@@ -21,11 +21,7 @@ export type Platform =
   | "matrix";
 
 /** Lifecycle state of a connection from the UI's perspective. */
-export type ConnectionStatus =
-  | "disconnected"
-  | "connecting"
-  | "connected"
-  | "error";
+export type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
 /**
  * Free-form credential bag the user supplied when creating the connection.
@@ -110,10 +106,7 @@ export interface ProtocolAdapter {
    * Fetch messages for a single chat. `before` is an adapter-defined
    * cursor (often an id or timestamp) used for pagination.
    */
-  listMessages(
-    chatId: string,
-    opts?: { limit?: number; before?: string },
-  ): Promise<Message[]>;
+  listMessages(chatId: string, opts?: { limit?: number; before?: string }): Promise<Message[]>;
 
   /** Send `text` to `chatId` and return the persisted message. */
   sendMessage(chatId: string, text: string): Promise<Message>;

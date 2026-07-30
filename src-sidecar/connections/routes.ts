@@ -44,11 +44,7 @@ export function buildConnectionsRouter(manager: ConnectionManager): Router {
       res.status(400).json({ error: "displayName is required" });
       return;
     }
-    const conn = await manager.create(
-      body.platform,
-      body.displayName,
-      body.config ?? {},
-    );
+    const conn = await manager.create(body.platform, body.displayName, body.config ?? {});
     res.status(201).json(conn);
   });
 

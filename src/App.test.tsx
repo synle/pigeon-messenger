@@ -7,11 +7,12 @@ import { ThemeProvider, createTheme } from "@mui/material";
 const theme = createTheme();
 
 const mockFetch = (body: unknown, init?: { status?: number }) =>
-  vi.fn(async () =>
-    new Response(JSON.stringify(body), {
-      status: init?.status ?? 200,
-      headers: { "Content-Type": "application/json" },
-    }),
+  vi.fn(
+    async () =>
+      new Response(JSON.stringify(body), {
+        status: init?.status ?? 200,
+        headers: { "Content-Type": "application/json" },
+      }),
   ) as unknown as typeof fetch;
 
 beforeEach(() => {
@@ -33,9 +34,7 @@ describe("App", () => {
     // so they have role="link", not "button".
     expect(screen.getByText("Pigeon Messenger")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /inbox/i })).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /^connections$/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^connections$/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /settings/i })).toBeInTheDocument();
   });
 
@@ -47,9 +46,7 @@ describe("App", () => {
         </MemoryRouter>
       </ThemeProvider>,
     );
-    await waitFor(() =>
-      expect(screen.getByText(/no connections yet/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/no connections yet/i)).toBeInTheDocument());
   });
 
   it("renders the Settings page when navigated to /settings", () => {
@@ -71,8 +68,6 @@ describe("App", () => {
         </MemoryRouter>
       </ThemeProvider>,
     );
-    expect(
-      screen.getByRole("heading", { name: "Connections" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Connections" })).toBeInTheDocument();
   });
 });

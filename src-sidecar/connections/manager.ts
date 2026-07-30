@@ -1,11 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { createAdapterFor } from "../adapters/registry";
-import type {
-  Connection,
-  ConnectionConfig,
-  Platform,
-  ProtocolAdapter,
-} from "../adapters/types";
+import type { Connection, ConnectionConfig, Platform, ProtocolAdapter } from "../adapters/types";
 import { readConnections, writeConnections } from "./store";
 
 /**

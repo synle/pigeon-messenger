@@ -14,12 +14,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
 import { Link as RouterLink } from "react-router";
-import {
-  deleteConnection,
-  listConnections,
-  startConnection,
-  stopConnection,
-} from "../lib/api";
+import { deleteConnection, listConnections, startConnection, stopConnection } from "../lib/api";
 import type { Connection } from "../types/messaging";
 
 /**

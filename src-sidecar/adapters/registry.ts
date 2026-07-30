@@ -67,18 +67,14 @@ export const PLATFORM_CATALOG: PlatformInfo[] = [
     platform: "discord",
     displayName: "Discord",
     description: "Discord bot token only (self-bots violate Discord ToS).",
-    requiredConfig: [
-      { key: "botToken", label: "Bot token", secret: true },
-    ],
+    requiredConfig: [{ key: "botToken", label: "Bot token", secret: true }],
     status: "stub",
   },
   {
     platform: "telegram",
     displayName: "Telegram",
     description: "Telegram Bot API. Create a bot via @BotFather and paste the token.",
-    requiredConfig: [
-      { key: "botToken", label: "Bot token", secret: true },
-    ],
+    requiredConfig: [{ key: "botToken", label: "Bot token", secret: true }],
     status: "stub",
   },
   {
@@ -97,18 +93,14 @@ export const PLATFORM_CATALOG: PlatformInfo[] = [
     platform: "googlechat",
     displayName: "Google Chat",
     description: "Google Workspace only. Service account or OAuth client.",
-    requiredConfig: [
-      { key: "serviceAccountJson", label: "Service account JSON", secret: true },
-    ],
+    requiredConfig: [{ key: "serviceAccountJson", label: "Service account JSON", secret: true }],
     status: "stub",
   },
   {
     platform: "facebook",
     displayName: "Facebook Messenger",
     description: "Pages messaging only — Meta does not expose personal DMs.",
-    requiredConfig: [
-      { key: "pageAccessToken", label: "Page access token", secret: true },
-    ],
+    requiredConfig: [{ key: "pageAccessToken", label: "Page access token", secret: true }],
     status: "stub",
   },
   {

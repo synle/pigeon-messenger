@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { invoke } from "@tauri-apps/api/core";
 import { Link as RouterLink } from "react-router";
 import { listConnections } from "../lib/api";
@@ -52,8 +43,8 @@ export default function HomePage() {
             <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
               <Typography variant="h6">No connections yet</Typography>
               <Typography variant="body2" color="text.secondary">
-                Pigeon Messenger talks to many chat platforms at once. Add your
-                first connection (Slack, Discord, Telegram, …) to get started.
+                Pigeon Messenger talks to many chat platforms at once. Add your first connection
+                (Slack, Discord, Telegram, …) to get started.
               </Typography>
               <Button component={RouterLink} to="/connections/new" variant="contained">
                 Add a connection

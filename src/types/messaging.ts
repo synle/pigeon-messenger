@@ -17,11 +17,7 @@ export type Platform =
   | "googlevoice"
   | "matrix";
 
-export type ConnectionStatus =
-  | "disconnected"
-  | "connecting"
-  | "connected"
-  | "error";
+export type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
 /** Persistable description of a connection. */
 export interface Connection {

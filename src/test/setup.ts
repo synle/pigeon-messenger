@@ -23,9 +23,10 @@ vi.mock("@tauri-apps/api/event", () => ({
 
 // Default fetch mock — tests should override per case when they need
 // platform-specific responses.
-globalThis.fetch = vi.fn(async () =>
-  new Response(JSON.stringify([]), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  }),
+globalThis.fetch = vi.fn(
+  async () =>
+    new Response(JSON.stringify([]), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }),
 ) as unknown as typeof fetch;

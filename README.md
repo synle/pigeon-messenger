@@ -8,17 +8,17 @@ A **unified desktop chat client** — one window for every messaging platform yo
 
 Connect to all the places conversations happen, behind one consistent UI:
 
-| Tier | Platform           | Approach                              | Status |
-|------|--------------------|---------------------------------------|--------|
-| 1    | Slack              | Web API + Socket Mode (bot/user tokens) | stub   |
-| 1    | Discord            | Bot API (gateway WebSocket)            | stub   |
-| 1    | Telegram           | Bot API (long-poll or webhook)         | stub   |
-| 1    | Microsoft Teams    | Microsoft Graph API (OAuth)            | stub   |
-| 1    | Google Chat        | Chat API (service account or OAuth)    | stub   |
-| 1    | Facebook Messenger | Send/Receive API — Page tokens only; personal DMs are unsupported by Meta | stub |
-| 1    | WhatsApp           | WhatsApp Business Cloud API (Meta)     | stub   |
+| Tier | Platform           | Approach                                                                                                       | Status      |
+| ---- | ------------------ | -------------------------------------------------------------------------------------------------------------- | ----------- |
+| 1    | Slack              | Web API + Socket Mode (bot/user tokens)                                                                        | stub        |
+| 1    | Discord            | Bot API (gateway WebSocket)                                                                                    | stub        |
+| 1    | Telegram           | Bot API (long-poll or webhook)                                                                                 | stub        |
+| 1    | Microsoft Teams    | Microsoft Graph API (OAuth)                                                                                    | stub        |
+| 1    | Google Chat        | Chat API (service account or OAuth)                                                                            | stub        |
+| 1    | Facebook Messenger | Send/Receive API — Page tokens only; personal DMs are unsupported by Meta                                      | stub        |
+| 1    | WhatsApp           | WhatsApp Business Cloud API (Meta)                                                                             | stub        |
 | 2    | Google Voice       | No public API — best-effort placeholder (Voice has no first-party API; would need scraping or carrier handoff) | placeholder |
-| 2    | Matrix             | Client-Server API (homeserver-agnostic) — the spiritual heir to Pidgin's federated approach | stub |
+| 2    | Matrix             | Client-Server API (homeserver-agnostic) — the spiritual heir to Pidgin's federated approach                    | stub        |
 
 Other strong candidates worth adding next: **IRC** (the original Pidgin protocol — easy, well-defined), **Signal** (via `signal-cli`), **Mattermost / Zulip / Rocket.Chat** (open-source Slack-alikes with clean APIs), **iMessage** (macOS-only, AppleScript bridge), **SMS via Twilio**.
 
@@ -51,12 +51,12 @@ cd src-tauri && cargo test  # Rust tests
 
 ### Requirements
 
-| Tool | Version | Notes |
-|------|---------|-------|
-| Node.js | 20+ | Use `fnm` / `nvm` to pin |
-| npm | 10+ | Ships with Node |
-| Rust | stable | `rustup default stable` |
-| Tauri prereqs | — | See [tauri.app prerequisites](https://tauri.app/start/prerequisites/) |
+| Tool          | Version | Notes                                                                 |
+| ------------- | ------- | --------------------------------------------------------------------- |
+| Node.js       | 20+     | Use `fnm` / `nvm` to pin                                              |
+| npm           | 10+     | Ships with Node                                                       |
+| Rust          | stable  | `rustup default stable`                                               |
+| Tauri prereqs | —       | See [tauri.app prerequisites](https://tauri.app/start/prerequisites/) |
 
 Platform-specific extras:
 

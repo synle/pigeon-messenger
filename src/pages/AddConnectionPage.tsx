@@ -116,9 +116,7 @@ export default function AddConnectionPage() {
                 label={field.label}
                 type={field.secret ? "password" : "text"}
                 value={config[field.key] ?? ""}
-                onChange={(e) =>
-                  setConfig((c) => ({ ...c, [field.key]: e.target.value }))
-                }
+                onChange={(e) => setConfig((c) => ({ ...c, [field.key]: e.target.value }))}
                 fullWidth
               />
             ))}
